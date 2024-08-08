@@ -17,12 +17,12 @@ export const EditValidationSchema = Yup.object({
   risk: Yup.string().required('Risk is required'),
   budget_actual_usd: Yup.number().min(0, 'Budget Actual must be a positive number'),
   budget_planned_usd: Yup.number().min(0, 'Budget Planned must be a positive number'),
-  milestones0: Yup.string(),
-  milestones1: Yup.string(),
-  milestones2: Yup.string(),
-  milestones3: Yup.string(),
-  milestones4: Yup.string(),
-  milestones5: Yup.string(),
+  milestones0: Yup.string().nullable(),
+  milestones1: Yup.string().nullable(),
+  milestones2: Yup.string().nullable(),
+  milestones3: Yup.string().nullable(),
+  milestones4: Yup.string().nullable(),
+  milestones5: Yup.string().nullable(),
 });
 
 // List of required fields

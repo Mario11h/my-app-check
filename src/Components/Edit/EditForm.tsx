@@ -1,11 +1,18 @@
 import React, { useState, useEffect } from 'react';
-import { Autocomplete, TextField, Button, Grid, Container, Tooltip, IconButton, Zoom } from '@mui/material';
+import {
+  Autocomplete, TextField, Button, Grid, Container,
+  Tooltip, IconButton, Zoom, Typography, Dialog, DialogActions,
+  DialogContent, DialogContentText, DialogTitle, Paper, Snackbar, Alert,
+  Box
+} from '@mui/material';
 import { Form, Field } from 'react-final-form';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
+import Draggable from 'react-draggable';
+import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import { validateProjectForm } from './EditValidator'; // Ensure this path is correct
 import { SetupFormValues } from './Type';
-import ArrowBackIcon from '@mui/icons-material/ArrowBack';
+import { images } from '../Assets/DummyData';
 
 interface Project {
   id: number;
@@ -31,10 +38,42 @@ interface Project {
   milestones5?: string;
 }
 
+function PaperComponent(props: any) {
+  return (
+    <Draggable handle="#draggable-dialog-title" cancel={'[class*="MuiDialogContent-root"]'}>
+      <Paper {...props} />
+    </Draggable>
+  );
+}
+
+const DraggableDialog: React.FC<{ open: boolean; onClose: (confirmed: boolean) => void }> = ({ open, onClose }) => (
+  <Dialog open={open} onClose={() => onClose(false)} PaperComponent={PaperComponent} aria-labelledby="draggable-dialog-title">
+    <DialogTitle style={{ cursor: 'move' }} id="draggable-dialog-title">
+      Confirm Submission
+    </DialogTitle>
+    <DialogContent>
+      <DialogContentText>
+        Are you sure you want to update the project details?
+      </DialogContentText>
+    </DialogContent>
+    <DialogActions>
+      <Button autoFocus onClick={() => onClose(false)} color="primary">
+        Cancel
+      </Button>
+      <Button onClick={() => onClose(true)} color="primary">
+        Submit
+      </Button>
+    </DialogActions>
+  </Dialog>
+);
+
 const Edit: React.FC = () => {
   const [projects, setProjects] = useState<Project[]>([]);
   const [selectedProject, setSelectedProject] = useState<Project | null>(null);
   const [initialValues, setInitialValues] = useState<Partial<SetupFormValues>>({});
+  const [dialogOpen, setDialogOpen] = useState(false);
+  const [formValues, setFormValues] = useState<Partial<SetupFormValues> | null>(null);
+  const [snackbarOpen, setSnackbarOpen] = useState(false);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -58,19 +97,34 @@ const Edit: React.FC = () => {
   };
 
   const onSubmit = async (values: Partial<SetupFormValues>) => {
-    const validationErrors = await validateProjectForm(values);
-    if (Object.keys(validationErrors).length > 0) {
-      return validationErrors;
-    }
+    setFormValues(values);
+    setDialogOpen(true); // Open the confirmation dialog
+  };
 
-    if (selectedProject) {
-      axios.put('/projects', {
-        projectName: selectedProject.project_name,
-        updatedData: values
-      })
-      .then(response => alert('Project updated successfully'))
-      .catch(error => console.error('Error updating project:', error));
+  const handleDialogClose = async (confirmed: boolean) => {
+    setDialogOpen(false);
+
+    if (confirmed && formValues && selectedProject) {
+      const validationErrors = await validateProjectForm(formValues);
+      if (Object.keys(validationErrors).length > 0) {
+        return validationErrors;
+      }
+
+      try {
+        await axios.put('/projects', {
+          projectName: selectedProject.project_name,
+          updatedData: formValues
+        });
+        setSnackbarOpen(true); // Show success message
+        setTimeout(() => navigate('/'), 2000); // Redirect after 2 seconds
+      } catch (error) {
+        console.error('Error updating project:', error);
+      }
     }
+  };
+
+  const handleSnackbarClose = () => {
+    setSnackbarOpen(false);
   };
 
   const renderTextField = (name: string, label: string, type: string = 'text') => (
@@ -92,7 +146,7 @@ const Edit: React.FC = () => {
             InputProps={{
               sx: {
                 color: initialValues[name as keyof SetupFormValues] === input.value
-                  ? 'rgba(191,191,191,1)'
+                  ? 'rgba(7,62,183,1)'
                   : 'inherit'
               }
             }}
@@ -104,11 +158,26 @@ const Edit: React.FC = () => {
 
   return (
     <Container>
+      <Box
+        sx={{
+          position: 'fixed',
+          bottom: 0, // Use bottom instead of top
+          left: 0,
+          width: '100%',
+          height: '100vh',
+          backgroundImage: `url(${images[1].imageUrl})`,
+          backgroundSize: 'cover',
+          backgroundPosition: 'center',
+          opacity: 0.3,
+          zIndex: -1,
+        }}
+      />
       <Tooltip title="Go Back" TransitionComponent={Zoom} arrow>
         <IconButton onClick={() => navigate('/')} color="secondary" sx={{ '&:hover svg': { transform: 'scale(1.2)' }, transition: 'transform 0.3s' }}>
           <ArrowBackIcon sx={{ color: 'rgba(4, 36, 106, 1)' }} />
         </IconButton>
       </Tooltip>
+      <Typography style={{ fontFamily: 'Roboto, sans-serif', fontWeight: 'bold', marginBottom: '16px', fontSize: '20px' }}>Edit Projects</Typography>
       <Grid container spacing={3}>
         <Grid item xs={12} sm={6}>
           <Autocomplete
@@ -129,7 +198,7 @@ const Edit: React.FC = () => {
                   <Grid container spacing={2}>
                     {renderTextField('project_name', 'Project Name')}
                     {renderTextField('code', 'Code')}
-                    <Grid item xs={12}>
+                    <Grid item xs={6}>
                       <Field name="overview">
                         {({ input, meta }: any) => (
                           <TextField
@@ -147,7 +216,7 @@ const Edit: React.FC = () => {
                             InputProps={{
                               sx: {
                                 color: initialValues.overview === input.value
-                                  ? 'rgba(191,191,191,1)'
+                                  ? 'rgba(7,62,183,1)'
                                   : 'inherit'
                               }
                             }}
@@ -155,7 +224,7 @@ const Edit: React.FC = () => {
                         )}
                       </Field>
                     </Grid>
-                    <Grid item xs={12}>
+                    <Grid item xs={6}>
                       <Field name="project_scope">
                         {({ input, meta }: any) => (
                           <TextField
@@ -173,7 +242,7 @@ const Edit: React.FC = () => {
                             InputProps={{
                               sx: {
                                 color: initialValues.project_scope === input.value
-                                  ? 'rgba(191,191,191,1)'
+                                  ? 'rgba(7,62,183,1)'
                                   : 'inherit'
                               }
                             }}
@@ -193,7 +262,9 @@ const Edit: React.FC = () => {
                     {renderTextField('budget_planned_usd', 'Budget Planned USD', 'number')}
 
                     {Array.from({ length: 6 }, (_, i) => {
-                      const minDate = i === 0 ? new Date().toISOString().split('T')[0] : (values[`milestones${i - 1}`] || new Date().toISOString().split('T')[0]);
+                      const minDate = i === 0
+                        ? new Date().toISOString().split('T')[0]
+                        : (values[`milestones${i - 1}`] || new Date().toISOString().split('T')[0]);
                       const label = i === 0 ? 'Project Start Date' : i === 5 ? 'Project End Date' : `Milestone ${i}`;
                       return (
                         <Grid item xs={6} key={i}>
@@ -215,7 +286,6 @@ const Edit: React.FC = () => {
                                       : 'inherit'
                                   }
                                 }}
-                                sx={{ '& .MuiFormLabel-asterisk': { color: 'red' } }}
                               />
                             )}
                           </Field>
@@ -223,7 +293,7 @@ const Edit: React.FC = () => {
                       );
                     })}
 
-                    <Grid item xs={12}>
+                    <Grid item xs={12} container justifyContent="flex-end">
                       <Button type="submit" variant="contained" color="primary" sx={{ backgroundColor: 'rgba(4, 36, 106, 1)' }}>
                         Update Project
                       </Button>
@@ -235,6 +305,24 @@ const Edit: React.FC = () => {
           </Grid>
         )}
       </Grid>
+      <DraggableDialog open={dialogOpen} onClose={handleDialogClose} />
+      <Snackbar
+        open={snackbarOpen}
+        autoHideDuration={6000}
+        onClose={handleSnackbarClose}
+        anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
+        sx={{
+          '& .MuiSnackbarContent-root': {
+            display: 'flex',
+            justifyContent: 'center',
+            textAlign: 'center',
+          },
+        }}
+      >
+        <Alert onClose={handleSnackbarClose} severity="success" sx={{ width: '100%' }}>
+          Project updated successfully!
+        </Alert>
+      </Snackbar>
     </Container>
   );
 };

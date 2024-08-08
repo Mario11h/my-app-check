@@ -18,6 +18,7 @@ import NewProjectForm from './Components/NewProjectForm/NewProjectForm';
 import MultipleSelectCheckmarks from './Components/MultipleSelectCheckmarks';
 import axios from 'axios';
 import Edit from './Components/Edit/EditForm';
+import { images } from './Components/Assets/DummyData';
 
 const Item = styled(Grid)(({ theme }) => ({
   backgroundColor: theme.palette.mode === 'dark' ? '#1A2027' : '#fff',
@@ -132,7 +133,53 @@ const App: React.FC = () => {
           <Route path="/edit" element={<Edit />} />
           <Route path="/" element={
             <>
+             <Box
+  sx={{
+    position: 'absolute', 
+    left: 0,
+    top:10,
+    width: '10%', 
+    height: '10vh',   
+    backgroundImage: `url(${images[2].imageUrl})`,
+    backgroundSize: 'cover',  
+    backgroundPosition: 'center', 
+  }}
+/>
+              <div style={{ display: 'flex' , justifyContent: 'flex-end' , }}>
+                  <Tooltip title="Add Project" TransitionComponent={Zoom} arrow>
+                    <IconButton
+                      color="primary"
+                      component={Link}
+                      to="/new-project"
+                      sx={{ '&:hover svg': { transform: 'scale(1.2)' }, transition: 'transform 0.3s' }}
+                    >
+                      <AddchartIcon sx={{ color: 'rgba(4, 36, 106, 1)' }} />
+                    </IconButton>
+                  </Tooltip>
+                  <Tooltip title="Edit Project" TransitionComponent={Zoom} arrow>
+                    <IconButton
+                      color="primary"
+                      component={Link}
+                      to="/edit"
+                      sx={{ '&:hover svg': { transform: 'scale(1.2)' }, transition: 'transform 0.3s' }}
+                    >
+                      <EditIcon sx={{ color: 'rgba(4, 36, 106, 1)' }} />
+                    </IconButton>
+                  </Tooltip>
+                  
+                  <MultipleSelectCheckmarks handleDelete={handleDelete}  />
+
+                  <Tooltip title="Print as PDF" TransitionComponent={Zoom} arrow>
+                    <IconButton
+                      onClick={handlePrint}
+                      sx={{ '&:hover svg': { transform: 'scale(1.2)' }, transition: 'transform 0.3s' }}
+                    >
+                      <PictureAsPdfIcon sx={{ color: 'rgba(4, 36, 106, 1)' }} />
+                    </IconButton>
+                  </Tooltip>
+                </div>
               <div style={{ display: 'none' }}>
+                
                 <div ref={componentRef}>
                   {projects.map((project , index) => (
                     <div key={index} style={{ pageBreakAfter: 'always' }}>
@@ -163,7 +210,9 @@ const App: React.FC = () => {
                               <div style={{ display: 'flex', justifyContent: 'flex-start' }}>
                                 <StatusLabel isFinished={!!project.milestones5?.length}>
                                   {!!project.milestones5?.length ? 'FINISHED' : 'ONGOING'}
+                                  
                                 </StatusLabel>
+                                
                               </div>
                               <StyledFullWidthGrayBox>
                                 <MilestonesTitle>MILESTONES</MilestonesTitle>
@@ -207,6 +256,7 @@ const App: React.FC = () => {
                   <Item sx={{ flex: 1 }}>
                     <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'space-between', height: '100%' }}>
                       <div style={{ display: 'flex', justifyContent: 'flex-start' }}>
+                        
                         <StatusLabel isFinished={!!currentProject?.milestones5?.length}>
                           {!!currentProject?.milestones5?.length ? 'FINISHED' : 'ONGOING'}
                         </StatusLabel>
@@ -225,39 +275,7 @@ const App: React.FC = () => {
               </Grid>
 
               <Box mt={2} justifyContent="space-between" alignItems="center">
-                <div style={{ display: 'flex' }}>
-                  <Tooltip title="Add Project" TransitionComponent={Zoom} arrow>
-                    <IconButton
-                      color="primary"
-                      component={Link}
-                      to="/new-project"
-                      sx={{ '&:hover svg': { transform: 'scale(1.2)' }, transition: 'transform 0.3s' }}
-                    >
-                      <AddchartIcon sx={{ color: 'rgba(4, 36, 106, 1)' }} />
-                    </IconButton>
-                  </Tooltip>
-                  <Tooltip title="Edit Project" TransitionComponent={Zoom} arrow>
-                    <IconButton
-                      color="primary"
-                      component={Link}
-                      to="/edit"
-                      sx={{ '&:hover svg': { transform: 'scale(1.2)' }, transition: 'transform 0.3s' }}
-                    >
-                      <EditIcon sx={{ color: 'rgba(4, 36, 106, 1)' }} />
-                    </IconButton>
-                  </Tooltip>
-                  
-                  <MultipleSelectCheckmarks handleDelete={handleDelete}  />
-
-                  <Tooltip title="Print as PDF" TransitionComponent={Zoom} arrow>
-                    <IconButton
-                      onClick={handlePrint}
-                      sx={{ '&:hover svg': { transform: 'scale(1.2)' }, transition: 'transform 0.3s' }}
-                    >
-                      <PictureAsPdfIcon sx={{ color: 'rgba(4, 36, 106, 1)' }} />
-                    </IconButton>
-                  </Tooltip>
-                </div>
+               
                 
                 <Pagination 
                   currentPage={currentPage} 

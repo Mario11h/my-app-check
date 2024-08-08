@@ -93,7 +93,7 @@ export const StatusLabel = styled('div')<{ isFinished: boolean }>(({ isFinished 
     backgroundColor: 'rgba(4, 36, 106, 1)', 
     padding: '4px 10px', 
     position: 'absolute',
-    top: '16%',
+    top: '22%',
 });
 
  
